@@ -65,7 +65,7 @@ class Cadastrar(Resource):
             conn.close()
             return {'insertion': 'ok'}
         except Exception as e:
-            print('cadastrado com sucesso: ' + self.nome)
+            print('parabéns, cadastrado com sucesso: ' + self.nome)
             #return {'insertion error': str(e)}
 
 
