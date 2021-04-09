@@ -1,0 +1,25 @@
+body {
+  background-color: #039be5;
+}
+
+.page-title{
+  color: #fff;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.menu-title a{
+  color: #fff;
+  text-align: center;
+  font-size: 42px;
+  font-weight: 600;
+  padding: 20px;
+  display: inline-block;
+}
+
+.menu-div{
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}

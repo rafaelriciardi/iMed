@@ -1,0 +1,40 @@
+.real-time{
+	font-size: 28px;
+	color: black;
+	font-weight: 650;
+	text-align: center;
+	margin-top: -5px;
+}
+
+td:first-child, td:last-child{
+	width: 33%;
+}
+
+#status-td{
+	text-align: center;
+	font-size: 22px;
+	color: black;
+	font-weight: 500;
+	padding-top: 5px;
+}
+
+tr:last-child, #time-values-tr{
+	border: none;
+}
+
+.btn-div{
+	text-align: center;
+	margin-top: 10px;
+}
+
+#update-time-btn{
+	margin-right: 5px;
+}
+
+#refresh-time-btn{
+	margin-left: 5px;
+}
+
+table{
+	margin-top: 10px;
+}

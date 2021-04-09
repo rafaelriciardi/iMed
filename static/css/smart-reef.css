@@ -1,0 +1,35 @@
+nav{
+	background-color: #039be5;
+}
+
+.brand-logo{
+	margin-left: 20px;
+}
+
+.page-title{
+	color: #039be5;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+input + .thumb{
+	background-color: #039be5 !important;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  border: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #039be5;
+  -webkit-transition: -webkit-box-shadow .3s;
+  transition: -webkit-box-shadow .3s;
+  transition: box-shadow .3s;
+  transition: box-shadow .3s, -webkit-box-shadow .3s;
+  -webkit-appearance: none;
+  background-color: #039be5;
+  -webkit-transform-origin: 50% 50%;
+          transform-origin: 50% 50%;
+  margin: -7px 0 0 0;
+}
