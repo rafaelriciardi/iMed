@@ -8,12 +8,12 @@ app = Flask(__name__)
 api = Api(app)
 cors = CORS(app)
 
-#conn = psycopg2.connect(
-#    host="ec2-34-225-167-77.compute-1.amazonaws.com",
-#    database="d76l1rkkcfbufc",
-#    user="imwtjcynbamcnr",
-#    password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
-#)
+conn = psycopg2.connect(
+    host="ec2-34-225-167-77.compute-1.amazonaws.com",
+    database="d76l1rkkcfbufc",
+    user="imwtjcynbamcnr",
+    password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+)
 
 routes_cadastrar = [
     '/cadastrar'
@@ -33,7 +33,7 @@ routes_next_schedule = [
 
 try:
 	cur = conn.cursor()
-	cur.execute("CREATE TABLE IF NOT EXISTS lights (time varchar(5) PRIMARY KEY, white integer NOT NULL, blue integer NOT NULL, violet integer NOT NULL);")
+	cur.execute("CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);")
 	conn.commit()
 	conn.close()
 except Exception as e:
@@ -45,28 +45,43 @@ class Cadastrar(Resource):
 
     def __init__(self):
         self.nome = None
+        self.cpf = None
+        self.birthday = None
+        self.genre = None
+        self.phone = None
+        self.email = None
+        self.convenio = None
 
     def post(self):
         req_data = request.get_json()  # obtendo os dados do model
         print(req_data)
         self.nome = req_data['nome']
+        self.cpf = req_data['cpf']
+        self.birthday = req_data['birthday']
+        self.genre = req_data['genre']
+        self.email = req_data['email']
+        self.convenio = req_data['convenio']
+        self.password = req_data['password']
 
         try:
             conn = psycopg2.connect(
-                host="ec2-54-197-48-79.compute-1.amazonaws.com",
-                database="dnjubkir1nj8r",
-                user="vlaisatyrcsqmw",
-                password="f84aaf47723cddeb2bddb79c299fa23c4b8ddfbd26ff0eb6144169f30c4dc424",
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
             )
             cur = conn.cursor()
-            cur.execute("INSERT INTO lights (time, white, blue, violet) VALUES (%s,%s,%s,%s) ON CONFLICT (time) DO UPDATE SET white = %s, blue = %s, violet = %s",
-                        (self.time, self.white, self.blue, self.violet, self.white, self.blue, self.violet))
+
+
+            cur.execute("INSERT INTO PACIENTES (Nome, Cpf, Birthday, Genre, Email, Convenio, Password) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                                            (self.nome, self.cpf, self.birthday, self.genre, self.email, self.convenio, self.password))
             conn.commit()
             conn.close()
             return {'insertion': 'ok'}
         except Exception as e:
-            print('parabéns, cadastrado com sucesso: ' + self.nome)
-            #return {'insertion error': str(e)}
+            print('FALHA NO CADASTRO')
+            print (str(e))
+            return {'insertion error': str(e)}
 
 
 class Delete(Resource):
@@ -95,9 +110,8 @@ class Delete(Resource):
         except Exception as e:
             return {'deletion error': str(e)}
 
-
+"""
 class Get_schedule(Resource):
-    """docstring for SelectAll"""
 
     def get(self):
         try:
@@ -116,9 +130,7 @@ class Get_schedule(Resource):
             print(e)
             return {'selection error': str(e)}
 
-
 class Get_next_schedule(Resource):
-    """docstring for Get_next_schedule"""
 
     def get(self, time):
         self.time = str(time).replace('h', ':')
@@ -143,18 +155,19 @@ class Get_next_schedule(Resource):
 
 def map(x, in_min, in_max, out_min, out_max):
     return round((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
-
+"""
 
 api.add_resource(Cadastrar, *routes_cadastrar)
 api.add_resource(Delete, *routes_delete)
+
+"""
 api.add_resource(Get_schedule, *routes_select_all)
 api.add_resource(Get_next_schedule, *routes_next_schedule)
+"""
 
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('cadastro.html')
-
 
 @app.route('/lights')
 def lights():
