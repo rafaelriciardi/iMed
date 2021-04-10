@@ -8,12 +8,12 @@ app = Flask(__name__)
 api = Api(app)
 cors = CORS(app)
 
-#conn = psycopg2.connect(
-#    host="ec2-34-225-167-77.compute-1.amazonaws.com",
-#    database="d76l1rkkcfbufc",
-#    user="imwtjcynbamcnr",
-#    password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
-#)
+conn = psycopg2.connect(
+    host="ec2-34-225-167-77.compute-1.amazonaws.com",
+    database="d76l1rkkcfbufc",
+    user="imwtjcynbamcnr",
+    password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+)
 
 routes_cadastrar = [
     '/cadastrar'
@@ -154,6 +154,10 @@ api.add_resource(Get_next_schedule, *routes_next_schedule)
 @app.route('/')
 def index():
     return render_template('cadastro.html')
+
+@app.route('/cadastro-medico')
+def cadastro_medico():
+    return render_template('cadastro-medico.html')
 
 
 @app.route('/lights')
