@@ -153,7 +153,7 @@ api.add_resource(Get_next_schedule, *routes_next_schedule)
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('cadastro.html')
 
 
 @app.route('/lights')

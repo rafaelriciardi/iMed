@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cadastro - iMed</title>
+
+  <link rel="icon" href="/static/img/cardiogram.png">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/bebasneueregular" type="text/css"/>
+  <link type="text/css" rel="stylesheet" href="./static/css/materialize.css"  media="screen,projection"/>
+  <link type="text/css" rel="stylesheet" href="./static/css/style-cadastro.css"  media="screen,projection"/>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+
+<nav class="nav-extended">
+    <div class="nav-wrapper">
+      <a href="/" class="brand-logo military-font" style="margin-left: 20px;"><img src="/static/img/cardiogram.png"> iMed</a>
+      <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li id="boas-vindas" class="military-font">Olá, <span id="boas-vindas-nome"></span><a class="waves-effect waves-light btn red" id="logout">Sair</a></li>
+        <li><a class="military-font header-link" href="/login.html">Login</a></li>
+        <li><a class="military-font header-link" href="/cadastro.html">Cadastro</a></li>
+        <li><a class="military-font header-link" href="/cadastro-campo.html">Cadastro Campo</a></li>
+      </ul>
+    </div>
+    <div class="nav-content military-font">
+      <ul class="tabs tabs-transparent">
+        <li class="tab"><a class="header-link" href="">Pag 1</a></li>
+        <li class="tab"><a class="header-link" href="#test2">Pag 2</a></li>
+        <li class="tab"><a class="header-link" href="#test4">Pag 3</a></li>
+        <li class="tab"><a class="header-link" href="#test4">Pag 4</a></li>
+      </ul>
+    </div>
+</nav>
+
+    <div class="signin-box">
+    <h4 class="box-title military-font">Cadastro</h4>
+    <div class="signin-form-div">
+      <form method="post" id="signin-form" class="col s12">
+          <div class="row">
+              <div class="input-field col s12">
+                <input id="name" type="text" name="full_name" class="validate" required>
+                <label for="name">Nome completo</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="cpf" type="text" name="cpf" class="validate" required>
+                <label for="cpf">CPF</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="birthday" type="text" name="birthday" class="validate" required>
+                <label for="birthday">Data Nascimento</label>
+              </div>
+              <div class="input-field col s12">
+                <select>
+                  <option value="" disabled selected>Selecione seu genero</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Feminino">Feminino</option>
+                </select>
+                <label>Genero</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="phone" type="text" name="adress" class="validate" required>
+                <label for="phone">Telefone</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="email" type="text" name="email" class="validate" required>
+                <label for="email">E-mail</label>
+              </div>
+              <div class="input-field col s12">
+                <select>
+                  <option value="" disabled selected>Selecione seu convênio médico</option>
+                  <option value="Bradesco">Bradesco</option>
+                  <option value="Porto Seguro">Porto Seguro</option>
+                  <option value="Unimed">Unimed</option>
+                </select>
+                <label>Convênio</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="password" type="password" name="password" class="validate" required>
+                <label for="password">Senha</label>
+              </div>
+              <div class="input-field col s12">
+                <input id="password-confirm" type="password" name="password-confirm" class="validate" required>
+                <label for="password-confirm">Confirme sua senha</label>
+              </div>
+
+
+        <div>
+          <a id="clear" class="waves-effect waves-light btn ">Limpar</a>
+          <button id="submit-form"class="waves-effect waves-light btn">Cadastrar</button>
+        </div>
+      </form>
+      </div>
+  </div>
+
+  <div class="footer">
+
+  </div>
+
+</body>
+<script type="text/javascript" src="./static/js/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="./static/js/materialize.min.js"></script>
+<script type="text/javascript" src="./static/js/script-cadastro.js"></script>
+</html>
