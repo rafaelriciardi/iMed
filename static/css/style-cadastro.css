@@ -1,0 +1,83 @@
+.nav-wrapper{
+	background-color: #039be5;;
+}
+
+.nav-content{
+	background-color: #0288d1;
+}
+
+.header-link{
+	font-size: 18px !important;
+	letter-spacing: 0.2px;
+}
+
+body {
+	background-color: #f0f0f0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #039be5;
+    font-size: 46px;
+    font-weight: bold;
+    line-height: 50px;
+    margin-bottom: 5px;
+    letter-spacing: 2.2px;
+ }
+
+ 
+
+.box-title{
+	top: 10px;
+}
+
+/* Sign In */
+.signin-box{
+	margin: 30px auto;
+	width: 60%;
+	height: 850px;
+	background-color: #fff;
+	border-radius: 18px;
+	text-align: center;
+	padding: 1px;
+}
+
+.signin-form-div{
+	margin: 0px 30px;
+}
+
+input{
+	color: #000;
+}
+
+#boas-vindas{
+    display: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 18px !important;
+}
+
+#boas-vindas-nome{
+    color: #e4a317;
+}
+
+#logout{
+    height: 30px;
+    line-height: 32px;
+}
+
+img {
+  width: 24px;
+  height: 24px;
+}
+
+.gender-div{
+	text-align: center;
+}
+
+.gender-div > label{
+	position: relative;
+	margin: 0 10px;
+}
+
+.gender-div > span{
+	margin: 0 30px;
+}
