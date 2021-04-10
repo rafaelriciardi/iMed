@@ -2,6 +2,7 @@ $(document).ready(function(){
     $('select').formSelect();
   });
 
+
 $(document).on('click', '#submit-form', function() {
 
   data = {
@@ -14,8 +15,6 @@ $(document).on('click', '#submit-form', function() {
     "convenio": $("#drop_list_convenio").val(),
     "password": $("#password").val()
   };
-
-  //console.log('teste console' + data)
 
     $.ajax({
       url: 'http://127.0.0.1:5000/cadastrar',
@@ -31,5 +30,9 @@ $(document).on('click', '#submit-form', function() {
       }
     });
 
+
+
+$('#clear').click(function() {
+  $('#signin-form').trigger('reset');
 
 });

@@ -34,7 +34,7 @@ h1, h2, h3, h4, h5, h6 {
 .signin-box{
 	margin: 30px auto;
 	width: 60%;
-	height: 850px;
+	height: 1060px;
 	background-color: #fff;
 	border-radius: 18px;
 	text-align: center;
@@ -80,4 +80,8 @@ img {
 
 .gender-div > span{
 	margin: 0 30px;
+}
+
+span > label{
+	color: #039be5;
 }

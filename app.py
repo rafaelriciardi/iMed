@@ -169,6 +169,12 @@ api.add_resource(Get_next_schedule, *routes_next_schedule)
 def index():
     return render_template('cadastro.html')
 
+
+@app.route('/cadastro-medico')
+def cadastro_medico():
+    return render_template('cadastro-medico.html')
+
+
 @app.route('/lights')
 def lights():
     return render_template('lights.html')
