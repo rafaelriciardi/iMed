@@ -170,9 +170,13 @@ def index():
     return render_template('cadastro.html')
 
 
-@app.route('/cadastro-medico')
+@app.route('/cadastro-medico', methods=['GET', 'POST'])
 def cadastro_medico():
     return render_template('cadastro-medico.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template('login.html')
 
 
 @app.route('/lights')
