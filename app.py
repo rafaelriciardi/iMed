@@ -1,10 +1,13 @@
 import psycopg2
+import pandas as pd
 from flask import Flask, render_template
 from flask_restful import Resource, Api, reqparse, request
 from flask_cors import CORS
 from waitress import serve
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 api = Api(app)
 cors = CORS(app)
 
@@ -15,8 +18,16 @@ conn = psycopg2.connect(
     password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
 )
 
+routes_efetuar_login = [
+    '/efetuar_login'
+]
+
 routes_cadastrar = [
     '/cadastrar'
+]
+
+routes_cadastrar_medico = [
+    '/cadastrar_medico'
 ]
 
 routes_select_all = [
@@ -33,7 +44,7 @@ routes_next_schedule = [
 
 try:
 	cur = conn.cursor()
-	cur.execute("CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);")
+	cur.execute("CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL)")
 	conn.commit()
 	conn.close()
 except Exception as e:
@@ -54,15 +65,14 @@ class Cadastrar(Resource):
 
     def post(self):
         req_data = request.get_json()  # obtendo os dados do model
-        print(req_data)
         self.nome = req_data['nome']
         self.cpf = req_data['cpf']
         self.birthday = req_data['birthday']
         self.genre = req_data['genre']
         self.email = req_data['email']
         self.convenio = req_data['convenio']
-        self.password = req_data['password']
-
+        self.password = bcrypt.generate_password_hash(req_data['password']).decode('utf-8')
+        
         try:
             conn = psycopg2.connect(
                 host="ec2-34-225-167-77.compute-1.amazonaws.com",
@@ -83,92 +93,114 @@ class Cadastrar(Resource):
             print (str(e))
             return {'insertion error': str(e)}
 
-
-class Delete(Resource):
+class Cadastrar_Medico(Resource):
     """docstring for Insert"""
 
     def __init__(self):
-        self.time = None
+        self.address = None
+        self.birthday = None
+        self.cidade = None
+        self.crm = None
+        self.email = None
+        self.especialidade = None
+        self.estado = None
+        self.nome = None
+        self.password = None
+        self.phone = None
 
     def post(self):
         req_data = request.get_json()  # obtendo os dados do model
-        self.time = req_data['time']
-        print(req_data)
+        
+        self.address =  req_data['address']
+        self.birthday =  req_data['birthday']
+        self.cidade =  req_data['cidade']
+        self.crm =  req_data['crm']
+        self.email =  req_data['email']
+        self.especialidade =  req_data['especialidade']
+        self.estado =  req_data['estado']
+        self.nome =  req_data['nome']
+        self.password = bcrypt.generate_password_hash(req_data['password']).decode('utf-8')
+        self.phone =  req_data['phone']
+        
+        print(self.password)
 
         try:
             conn = psycopg2.connect(
-                host="ec2-54-197-48-79.compute-1.amazonaws.com",
-                database="dnjubkir1nj8r",
-                user="vlaisatyrcsqmw",
-                password="f84aaf47723cddeb2bddb79c299fa23c4b8ddfbd26ff0eb6144169f30c4dc424",
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
             )
             cur = conn.cursor()
-            cur.execute("DELETE FROM lights WHERE time = %s;", (self.time,))
+
+
+            cur.execute("INSERT INTO MEDICOS (address, birthday, cidade, crm, email, especialidade, estado, nome, password, phone) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                            (self.address, self.birthday, self.cidade, self.crm, self.email, self.especialidade, self.estado, self.nome, self.password, self.phone))
             conn.commit()
             conn.close()
-            return {'deletion': 'ok'}
+            return {'insertion': 'ok'}
         except Exception as e:
-            return {'deletion error': str(e)}
+            print('FALHA NO CADASTRO MÉDICO')
+            print (str(e))
+            return {'insertion error': str(e)}
 
-"""
-class Get_schedule(Resource):
+class Efetuar_Login(Resource):
+    def __init__(self):
+        self.username = None
+        self.password = None
 
-    def get(self):
+    def post(self):
+        req_data = request.get_json()
+        self.user = req_data['user']
+        self.password = req_data['password']#.encode('utf-8')
+        self.tipo_usuario = req_data['tipo_usuario']
+        print('logando ' + self.user)
+        
         try:
-            conn = psycopg2.connect(
-                host="ec2-54-197-48-79.compute-1.amazonaws.com",
-                database="dnjubkir1nj8r",
-                user="vlaisatyrcsqmw",
-                password="f84aaf47723cddeb2bddb79c299fa23c4b8ddfbd26ff0eb6144169f30c4dc424",
-            )
-            cur = conn.cursor()
-            query = cur.execute("SELECT * FROM lights ORDER BY time")
-            query = cur.fetchall()
-            conn.close()
-            return query
+            return self.checkUser()
         except Exception as e:
-            print(e)
-            return {'selection error': str(e)}
-
-class Get_next_schedule(Resource):
-
-    def get(self, time):
-        self.time = str(time).replace('h', ':')
-        print(self.time)
-
-
-        try:
-            conn = psycopg2.connect(
-                host="ec2-54-197-48-79.compute-1.amazonaws.com",
-                database="dnjubkir1nj8r",
-                user="vlaisatyrcsqmw",
-                password="f84aaf47723cddeb2bddb79c299fa23c4b8ddfbd26ff0eb6144169f30c4dc424",
-            )
-            cur = conn.cursor()
-            query = cur.execute("WITH fq as (SELECT * FROM(SELECT * ,LEAD(time, 1, (SElECT time FROM lights ORDER BY time LIMIT 1)) OVER(ORDER BY time) as Next_Time FROM lights ORDER BY time DESC) as aux WHERE time <= %s LIMIT 1) SELECT * FROM fq UNION ALL SELECT * , LEAD(time, 1, (SElECT time FROM lights ORDER BY time LIMIT 1)) OVER(ORDER BY time) as Next_Time FROM lights WHERE NOT EXISTS (SELECT * FROM fq) ORDER BY time LIMIT 1;", (self.time,))
-            query = cur.fetchall()[0]
             conn.close()
-            return "{time:"+query[0]+"&value:"+str(map(query[1], 0, 100, 0, 255))+"-"+str(map(query[2], 0, 100, 0, 255))+"-"+str(map(query[3], 0, 100, 0, 255))+"&next_time:"+query[4]+"}"
-        except Exception as e:
-            print(e)
-            return {'Exception' : str(e)}
+            return {'error': str(e)}
 
-def map(x, in_min, in_max, out_min, out_max):
-    return round((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
-"""
+    def checkUser(self):
+        
+        conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+        cur = conn.cursor()
+        
+        print(self.tipo_usuario)
+
+        if self.tipo_usuario == "paciente":
+            df_password =  pd.read_sql_query("SELECT password FROM PACIENTES WHERE Cpf = '"+self.user+"'", conn)
+        elif self.tipo_usuario == "medico":
+            df_password =  pd.read_sql_query("SELECT password FROM MEDICOS WHERE Crm = '"+self.user+"'", conn)
+        
+        conn.close()
+
+        if(len(df_password) == 0):
+            return 'Usuário não cadastrado'
+        else:
+            bd_password = df_password.to_dict()["password"][0]
+            if(bcrypt.check_password_hash(bd_password, self.password)):
+                print('entrou')
+                return "success"
+            else:
+                print('falha')
+                return "Usuário e senha não coincidem"
 
 api.add_resource(Cadastrar, *routes_cadastrar)
-api.add_resource(Delete, *routes_delete)
+api.add_resource(Cadastrar_Medico, *routes_cadastrar_medico)
+api.add_resource(Efetuar_Login, *routes_efetuar_login)
 
-"""
-api.add_resource(Get_schedule, *routes_select_all)
-api.add_resource(Get_next_schedule, *routes_next_schedule)
-"""
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/cadastro', methods=['GET', 'POST'])
 def index():
     return render_template('cadastro.html')
-
 
 @app.route('/cadastro-medico', methods=['GET', 'POST'])
 def cadastro_medico():
@@ -179,21 +211,5 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/lights')
-def lights():
-    return render_template('lights.html')
-
-
-@app.route('/temp')
-def temp():
-    return render_template('temp.html')
-
-@app.route('/settings')
-def settings():
-    return render_template('settings.html')
-
-
 if __name__ == '__main__':
-    #logging.basicConfig(filename='logs/flask_logging.log', level=logging.DEBUG)
-    # serve(app)#, host='0.0.0.0', port=7000
     app.run()
