@@ -13,3 +13,29 @@ $('input[type=radio][name=user-type]').change(function() {
         login_type = 'medico';
     }
 });
+
+$(document).on('click', '#login', function() {
+
+    data = {
+      "user": $("#user").val(),
+      "password": $("#password").val(),
+      "tipo_usuario": login_type
+    };
+    
+    console.log(data)
+
+      $.ajax({
+        url: 'http://127.0.0.1:5000/efetuar_login',
+        type: 'POST',
+        dataType: 'JSON',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response){
+          console.log(JSON.stringify(response))
+        },
+        error: function (response){
+          alert(JSON.stringify(response));
+        }
+      });
+  
+  })
