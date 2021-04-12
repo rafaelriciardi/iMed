@@ -30,7 +30,7 @@ $(document).on('click', '#submit-form', function() {
       }
     });
 
-
+})
 
 $('#clear').click(function() {
   $('#signin-form').trigger('reset');
