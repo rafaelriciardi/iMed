@@ -8,6 +8,16 @@ $('#clear').click(function() {
 
 $(document).on('click', '#submit-form', function() {
 
+  /*var conveniosAceitos = $("#convenios_atendidos").val();
+
+  for (var i = 0, l = conveniosAceitos.length; i < l; i++) {
+    data = {
+      "Convenio": conveniosAceitos[i],
+      "Crm": conveniosAceitos[i]
+    };
+  }
+  */
+
   data = {
     "nome": $("#name").val(),
     "crm": $("#crm").val(),
@@ -17,7 +27,7 @@ $(document).on('click', '#submit-form', function() {
     "estado": $("#estado").val(),
     "phone": $("#phone").val(),
     "email": $("#email").val(),
-    "convenio": $("#drop_list_convenio").val(),
+    "convenios_atendidos": $("#convenios_atendidos").val(),
     "especialidade": $("#especialidade").val(),
     "password": $("#password").val()
   };
