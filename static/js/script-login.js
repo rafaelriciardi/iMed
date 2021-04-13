@@ -35,8 +35,12 @@ $(document).on('click', '#login', function() {
           console.log(JSON.stringify(response))
           if (response['login'] == 'ok'){
               name = response['nome']
-              console.log(name)
+              id = response['id']
+
+              console.log(response)
               document.cookie = `name=${name}`;
+              document.cookie = `id=${id}`;
+              document.cookie = `type=${login_type}`;
               window.location.href = "/busca";
           }
           else if(response['login'] == 'bad password'){

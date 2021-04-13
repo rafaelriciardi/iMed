@@ -1,5 +1,6 @@
 $( document ).ready(function(){
 	$('select').formSelect();
+  $('.datepicker').datepicker({ format: 'dd-mm-yyyy' });
 	checkUser();
   retornaBusca();
   preencheFiltros();
@@ -23,28 +24,104 @@ $(document).on('click','.close-btn', function(){
     $('.doctor-content-div').hide();
 });
 
-$(document).on('click','.nome-medico', function(){
-    var id = $(this).parent().children().last().text();
-    console.log(id);
+$(document).on('click','#agendar-consulta', function(){
+  if ($('.datepicker').val() != "" && $('select').val() != ""){
+    agendarConsulta();
+  }
+  else{
+    alert("Escolha um dia e horario de consulta");
+  }
+  
+});
+
+$(document).on('click','.doctor-table tr', function(){
+    var id = $(this).attr('value');
+    console.log($(this).find('.nome-medico').text())
+
+    $('.datepicker').val('');
+    $('select').prop('selectedIndex',0);
+    $('select').formSelect();
+    
+    $('#doctor-name').text($(this).find('.nome-medico').text());
+    $('#doctor-site').html("CRM: <span id='crm-value'>"+id+"</span>");
+    $('#doctor-address').text($(this).find('.endereco-medico').text());
+    $('#doctor-city').text($(this).find('.cidade').text());
+    $('#doctor-state').text($(this).find('.estado').text());
+    $('#doctor-especialidade').text($(this).find('.site-medico').text());
+    $('#doctor-convenios').text($(this).find('.convenio-medico').text());
+    $('.doctor-content-div').show();
+
+});
+
+$(document).on('change','.datepicker', function(){
+    console.log($('.datepicker').val());
+    getHorarios($('.datepicker').val(), $('#crm-value').text());
+});
+
+function getHorarios(date, crm){
+  filter_data = {
+    "data": date,
+    "crm": crm
+  };
+
+  console.log(filter_data)
+  
+  $.ajax({
+        url: 'http://localhost:5000/gethorarios',
+        type: 'POST',
+        dataType: 'JSON',
+        contentType: 'application/json',
+        data: JSON.stringify(filter_data), 
+        success: function(data) {
+          for(i = 0; i < data.length; i++){
+            $('#horario-select option[value="'+data[i]+'"]').attr("disabled", true);;
+          }
+          $('select').formSelect();
+         },
+        error: function (e){
+            console.log(JSON.stringify(e));
+        }
+    });
+}
+
+function agendarConsulta(){
+  userId = getCookie('id')
+  if(userId != ""){
+    data = {
+      'data': $('.datepicker').val(),
+      'horario': $('#horario-select select').val(),
+      'cpf': getCookie('id'),
+      'crm': $('#crm-value').text()
+    }
+
+    console.log(data);
     $.ajax({
-          url: 'http://134.209.114.75/airsoftspot/api/doctor/'+id,
-          type: 'get',
-          success: function(data) {
-            console.log(data);
-            $('#doctor-name').text(data["name"]);
-            $('#doctor-site').text(data["site"]);
-            $('#doctor-address').text(data["address"]);
-            $('#doctor-city').text(data["city"]);
-            $('#doctor-state').text(data["state"]);
-            $('#doctor-description').html(data["about"]);
-            $('#doctor-id').text(data["fieldid"]);
-            $('.doctor-content-div').show();
+          url: 'http://localhost:5000/agendarconsulta',
+          type: 'POST',
+          dataType: 'JSON',
+          contentType: 'application/json',
+          data: JSON.stringify(data), 
+          success: function(response) {
+            console.log(response);
+            if (response['insertion'] == 'ok'){
+                alert("Consulta agendada com sucesso");
+                $('.doctor-content-div').hide();
+              }
+              else{
+                alert(JSON.stringify(response));
+              }
            },
           error: function (e){
               console.log(JSON.stringify(e));
           }
       });
-});
+  }
+  else{
+    alert("Voce precisa estar logado para agendar uma consulta")
+    window.location.href = "/login"
+  }
+
+}
 
 function retornaBusca(){
   filter_data = {
@@ -65,29 +142,13 @@ function retornaBusca(){
         success: function(data) {
           console.log(data);
           for(i = 0; i < data.length; i++){
-            $('.doctor-table').append('<tr><td><a class="nome-medico military-font">'+data[i][1]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i][2]+'</span> - <span class="estado">'+data[i][3]+'</span></p><p class="site-medico">'+data[i][4]+'</p><div class="id-medico">'+data[i][5]+'</div></td></tr>');
+            $('.doctor-table').append('<tr value='+data[i][0]+'><td><a class="nome-medico military-font">'+data[i][1]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i][2]+'</span> - <span class="estado">'+data[i][3]+'</span></p><p class="endereco-medico">'+data[i][5]+'</p><p class="site-medico">'+data[i][4]+'</p><div class="convenio-medico">'+data[i][6]+'</div></td></tr>');
           }
          },
         error: function (e){
             console.log(JSON.stringify(e));
         }
     });
-}
-
-function getMedicos(){
-  $.ajax({
-          url: 'http://localhost:5000/teste',
-          type: 'get',
-          success: function(data) {
-            console.log(data);
-            for(i = 0; i < data.length; i++){
-              $('.doctor-table').append('<tr><td><a class="nome-medico military-font">'+data[i]["name"]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i]["city"]+'</span> - <span class="estado">'+data[i]["state"]+'</span></p><p class="site-medico">'+data[i]["site"]+'</p><div class="id-medico">'+data[i]["fieldid"]+'</div></td></tr>');
-            }
-           },
-          error: function (e){
-              console.log(JSON.stringify(e));
-          }
-      });
 }
 
 function preencheFiltros(){
@@ -120,19 +181,12 @@ function preencheFiltros(){
             console.log(JSON.stringify(e));
         }
     });
+}
 
 $('#logout').click(function(event) {
   document.cookie = 'name=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-  location.reload();
-});
-
-
-}
-
-$('#logout').click( function(event) {
-  document.cookie = "name=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+  document.cookie = 'id=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+  document.cookie = 'type=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
   location.reload();
 });
 

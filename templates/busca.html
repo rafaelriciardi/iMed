@@ -63,8 +63,26 @@
       <p id="doctor-site">medico@provedor.com.br</p>
       <p id="doctor-address">Rua Exemplo, N° 123</p>
       <p id="doctor-location"><span id="doctor-city">São Paulo</span> - <span id="doctor-state">SP</span></p>
-      <p id="doctor-description">Especialidade do medico</p>
-      <div id="doctor-id" class="id-campo">123</div>
+      <p id="doctor-especialidades">Especialidade</p>
+      <p id="doctor-convenios">Convenio 1</p>
+      <p style="margin-top: 40px; font-weight: 600;">Agendamento</p>
+      <p><label id='datepicker-label' for="dia">Escolha o dia: </label><input type="text" class="datepicker" name="dia" id="dia">
+      </p>
+      <p><div id="horario-select"><select >
+          <option value="" disabled selected>Escolha um horario</option>
+          <option value="08:00">08:00</option>
+          <option value="09:00">09:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
+        </select>
+      </div>
+      </p>
+      <button id="agendar-consulta"class="waves-effect waves-light btn" type="button" disabled>Agendar</button>
     </div>
 
     <div class="title-div">
