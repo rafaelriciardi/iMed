@@ -41,12 +41,15 @@
           <label for="nome">Nome do médico</label>
         </div>
         <div class="select-div">
-          <input id="cidade" type="text" class="validate">
-          <label for="cidade">Cidade</label>  
+          <select id="drop_list_cidades">
+            <option value="" disabled selected>Cidade</option>
+          </select>
         </div>
         <div class="select-div">
-          <input id="especialidade" type="text" class="validate">
-          <label for="especialidade">Especialidade</label>  
+          <select id="drop_list_especialidade">
+            <option value="" disabled selected>Especialidade</option>
+            <option value="1">Especialidade</option>
+          </select>  
         </div>
         <div class="filter-btn-div">
           <a id="cancel-filter" class="waves-effect waves-light btn ">Cancelar</a>

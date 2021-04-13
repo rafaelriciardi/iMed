@@ -43,7 +43,7 @@ routes_getespecialidades = [
 ]
 
 routes_getcidades = [
-    '/getecidades'
+    '/getcidades'
 ]
 
 try:

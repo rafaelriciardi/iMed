@@ -1,9 +1,11 @@
 $( document ).ready(function(){
 	$('select').formSelect();
-  getFields();
+	checkUser();
+  //getFields();
 });
 
 $(document).on('click','#filter', function(){
+    preencheFiltros();
     $('.filter-window').show();
 });
 
@@ -12,14 +14,16 @@ $(document).on('click','#cancel-filter', function(){
 });
 
 $(document).on('click','#apply-filter', function(){
-    $('.field-table tr').remove();
+    $('.doctor-table tr').remove();
     $.ajax({
-          url: 'http://134.209.114.75/airsoftspot/api/field?name='+$('#nome').val()+'&city='+$('#cidade').val()+'&state='+$('#estado').val(),
-          type: 'get',
+          url: 'http://134.209.114.75/airsoftspot/api/doctor?name='+$('#nome').val()+'&city='+$('#cidade').val()+'&state='+$('#estado').val(),
+          type: 'POST',
+          dataType: 'JSON',
+          contentType: 'application/json',
           success: function(data) {
             console.log(data);
             for(i = 0; i < data.length; i++){
-              $('.field-table').append('<tr><td><a class="nome-campo military-font">'+data[i]["name"]+'</a><p class="localizacao-campo"><span class="cidade">'+data[i]["city"]+'</span> - <span class="estado">'+data[i]["state"]+'</span></p><p class="site-campo">'+data[i]["site"]+'</p><div class="id-campo">'+data[i]["fieldid"]+'</div></td></tr>');
+              $('.doctor-table').append('<tr><td><a class="nome-medico military-font">'+data[i]["name"]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i]["city"]+'</span> - <span class="estado">'+data[i]["state"]+'</span></p><p class="site-medico">'+data[i]["site"]+'</p><div class="id-medico">'+data[i]["fieldid"]+'</div></td></tr>');
             }
            },
           error: function (e){
@@ -30,25 +34,25 @@ $(document).on('click','#apply-filter', function(){
 });
 
 $(document).on('click','.close-btn', function(){
-    $('.field-content-div').hide();
+    $('.doctor-content-div').hide();
 });
 
-$(document).on('click','.nome-campo', function(){
+$(document).on('click','.nome-medico', function(){
     var id = $(this).parent().children().last().text();
     console.log(id);
     $.ajax({
-          url: 'http://134.209.114.75/airsoftspot/api/field/'+id,
+          url: 'http://134.209.114.75/airsoftspot/api/doctor/'+id,
           type: 'get',
           success: function(data) {
             console.log(data);
-            $('#field-name').text(data["name"]);
-            $('#field-site').text(data["site"]);
-            $('#field-address').text(data["address"]);
-            $('#field-city').text(data["city"]);
-            $('#field-state').text(data["state"]);
-            $('#field-description').html(data["about"]);
-            $('#field-id').text(data["fieldid"]);
-            $('.field-content-div').show();
+            $('#doctor-name').text(data["name"]);
+            $('#doctor-site').text(data["site"]);
+            $('#doctor-address').text(data["address"]);
+            $('#doctor-city').text(data["city"]);
+            $('#doctor-state').text(data["state"]);
+            $('#doctor-description').html(data["about"]);
+            $('#doctor-id').text(data["fieldid"]);
+            $('.doctor-content-div').show();
            },
           error: function (e){
               console.log(JSON.stringify(e));
@@ -56,20 +60,56 @@ $(document).on('click','.nome-campo', function(){
       });
 });
 
-function getFields(){
+function getMedicos(){
   $.ajax({
-          url: 'http://134.209.114.75/airsoftspot/api/field?name=&city=&state=',
+          url: 'http://localhost:5000/teste',
           type: 'get',
           success: function(data) {
             console.log(data);
             for(i = 0; i < data.length; i++){
-              $('.field-table').append('<tr><td><a class="nome-campo military-font">'+data[i]["name"]+'</a><p class="localizacao-campo"><span class="cidade">'+data[i]["city"]+'</span> - <span class="estado">'+data[i]["state"]+'</span></p><p class="site-campo">'+data[i]["site"]+'</p><div class="id-campo">'+data[i]["fieldid"]+'</div></td></tr>');
+              $('.doctor-table').append('<tr><td><a class="nome-medico military-font">'+data[i]["name"]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i]["city"]+'</span> - <span class="estado">'+data[i]["state"]+'</span></p><p class="site-medico">'+data[i]["site"]+'</p><div class="id-medico">'+data[i]["fieldid"]+'</div></td></tr>');
             }
            },
           error: function (e){
               console.log(JSON.stringify(e));
           }
       });
+}
+
+function preencheFiltros(){
+    $.ajax({
+        url: 'http://localhost:5000/getespecialidades',
+        type: 'get',
+        success: function(data) {
+          console.log(data);
+          for(i = 0; i < data.length; i++){
+            console.log(data[i][0])
+            $('#drop_list_especialidade').append('<option value="'+data[i][0]+'">'+data[i][0]+'</option>');
+          }
+          $('#drop_list_especialidade').formSelect();
+         },
+        error: function (e){
+            console.log(JSON.stringify(e));
+        }
+    });
+
+    $.ajax({
+        url: 'http://localhost:5000/getcidades',
+        type: 'get',
+        success: function(data) {
+          console.log(data);
+          for(i = 0; i < data.length; i++){
+            console.log(data[i][0])
+            $('#drop_list_cidades').append('<option value="'+data[i][0]+'">'+data[i][0]+'</option>');
+          }
+          $('#drop_list_cidades').formSelect();
+         },
+        error: function (e){
+            console.log(JSON.stringify(e));
+        }
+    });
+
+
 }
 
 $('#logout').click( function(event) {
@@ -102,13 +142,13 @@ function checkUser(){
       $('#boas-vindas').parent().children().eq(0).show();
       $('#boas-vindas').parent().children().eq(1).hide();
       $('#boas-vindas').parent().children().eq(2).hide();
-      $('#boas-vindas').parent().children().eq(3).show();
+      $('#boas-vindas').parent().children().eq(3).hide();
     }
 
     else{
       $('#boas-vindas').parent().children().eq(0).hide();
       $('#boas-vindas').parent().children().eq(1).show();
       $('#boas-vindas').parent().children().eq(2).show();
-      $('#boas-vindas').parent().children().eq(3).hide();
+      $('#boas-vindas').parent().children().eq(3).show();
     }
 }

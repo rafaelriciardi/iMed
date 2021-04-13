@@ -147,7 +147,7 @@ span > label{
 .filter-window{
 	z-index: 100;
 	width: 400px;
-	height: 328px;
+	height: 280px;
 	border-radius: 10px;
 	background-color: #fff;
 	position: absolute;
