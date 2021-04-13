@@ -54,6 +54,14 @@ routes_realizarbusca = [
     '/realizarbusca'
 ]
 
+#cur = conn.cursor()
+#cur.execute("DROP TABLE CONVENIOS")
+#cur.execute("INSERT INTO CONVENIOS VALUES (1, 'Bradesco')")
+#cur.execute("INSERT INTO CONVENIOS VALUES (2, 'Porto Seguro')")
+#cur.execute("INSERT INTO CONVENIOS VALUES (3, 'Unimed')")
+#conn.commit()
+#conn.close()
+
 try:
     cur = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);CREATE TABLE IF NOT EXISTS MEDICOS_CONVENIOS (IDRelacao SERIAL PRIMARY KEY, Crm VARCHAR(255), IDConvenio INT NOT NULL);CREATE TABLE IF NOT EXISTS CONVENIOS (IDConvenio INT NOT NULL PRIMARY KEY, Convenio VARCHAR(255))")
@@ -190,9 +198,9 @@ class Efetuar_Login(Resource):
         print(self.tipo_usuario)
 
         if self.tipo_usuario == "paciente":
-            df_password =  pd.read_sql_query("SELECT password FROM PACIENTES WHERE Cpf = '"+self.user+"'", conn)
+            df_password =  pd.read_sql_query("SELECT password, nome FROM PACIENTES WHERE Cpf = '"+self.user+"'", conn)
         elif self.tipo_usuario == "medico":
-            df_password =  pd.read_sql_query("SELECT password FROM MEDICOS WHERE Crm = '"+self.user+"'", conn)
+            df_password =  pd.read_sql_query("SELECT password, nome FROM MEDICOS WHERE Crm = '"+self.user+"'", conn)
         
         conn.close()
 
@@ -202,10 +210,10 @@ class Efetuar_Login(Resource):
             bd_password = df_password.to_dict()["password"][0]
             if(bcrypt.check_password_hash(bd_password, self.password)):
                 print('entrou')
-                return "success"
+                return {"login": "ok", "nome": df_password.to_dict()["nome"][0]}
             else:
                 print('falha')
-                return "Usuário e senha não coincidem"
+                return {"login": "bad password"}
 
 class GetEspecialidades(Resource):
 
@@ -277,26 +285,30 @@ class RealizarBusca(Resource):
         self.cidade = req_data['cidade']
         self.especialidade = req_data['especialidade']
         self.convenio = req_data['convenio']
-        
+
         filtros = ['nome','cidade','especialidade','convenio']
         filtrosRecebidos = [self.nome, self.cidade, self.especialidade,self.convenio]
-
-        indices = [i for i, x in enumerate(filtrosRecebidos) if x == ""]
-        for index in reversed(indices):
-            filtros.pop(index)
-            filtrosRecebidos.pop(index)
-
-        if len(filtros) == 0:
-            sWhere = ''
-        elif len(filtrosRecebidos) == 1:
-            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
-        else:
-            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
-            for i in range(1, len(b)):
-                sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
-        query = "SELECT MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Especialidade, CONVENIOS.Convenio FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+        
         
         try:
+            conv = lambda i : i or ''
+            filtrosRecebidos = [conv(i) for i in filtrosRecebidos]
+            print(filtrosRecebidos)
+            indices = [i for i, x in enumerate(filtrosRecebidos) if x == ""]
+            for index in reversed(indices):
+                filtros.pop(index)
+                filtrosRecebidos.pop(index)
+
+            if len(filtros) == 0:
+                sWhere = ''
+            elif len(filtrosRecebidos) == 1:
+                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+            else:
+                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+                for i in range(1, len(filtrosRecebidos)):
+                    sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
+            query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, CONVENIOS.Convenio FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+
             conn = psycopg2.connect(
                 host="ec2-34-225-167-77.compute-1.amazonaws.com",
                 database="d76l1rkkcfbufc",
