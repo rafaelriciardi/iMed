@@ -8,16 +8,6 @@ $('#clear').click(function() {
 
 $(document).on('click', '#submit-form', function() {
 
-  /*var conveniosAceitos = $("#convenios_atendidos").val();
-
-  for (var i = 0, l = conveniosAceitos.length; i < l; i++) {
-    data = {
-      "Convenio": conveniosAceitos[i],
-      "Crm": conveniosAceitos[i]
-    };
-  }
-  */
-
   data = {
     "nome": $("#name").val(),
     "crm": $("#crm").val(),
@@ -34,6 +24,32 @@ $(document).on('click', '#submit-form', function() {
 
     $.ajax({
       url: 'http://127.0.0.1:5000/cadastrar_medico',
+      type: 'POST',
+      dataType: 'JSON',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
+      success: function (response){
+        console.log(JSON.stringify(response))
+      },
+      error: function (response){
+        alert(JSON.stringify(response));
+      }
+    });
+
+})
+
+
+$(document).on('click', '#realizarbusca', function() {
+
+  data = {
+    "nome": $("#nome").val(),
+    "cidade": $("#cidade").val(),
+    "especialidade": $("#especialidade").val(),
+    "convenio": $("#convenio").val()
+  };
+
+    $.ajax({
+      url: 'http://127.0.0.1:5000/realizarbusca',
       type: 'POST',
       dataType: 'JSON',
       contentType: 'application/json',

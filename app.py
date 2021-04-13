@@ -43,7 +43,15 @@ routes_getespecialidades = [
 ]
 
 routes_getcidades = [
-    '/getecidades'
+    '/getcidades'
+]
+
+routes_getconvenios = [
+    '/getconvenios'
+]
+
+routes_realizarbusca = [
+    '/realizarbusca'
 ]
 
 try:
@@ -53,7 +61,6 @@ try:
     conn.close()
 except Exception as e:
         print({'Exception First:': str(e)})
-
 
 class Cadastrar(Resource):
     """docstring for Insert"""
@@ -237,12 +244,84 @@ class GetCidades(Resource):
         except Exception as e:
             print(e)
             return {'selection error': str(e)}
+
+class GetConvenios(Resource):
+
+    def get(self):
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            query = cur.execute("SELECT DISTINCT Convenio FROM CONVENIOS ORDER BY Convenio")
+            query = cur.fetchall()
+            conn.close()
+            return query
+        except Exception as e:
+            print(e)
+            return {'selection error': str(e)}
+
+class RealizarBusca(Resource):
+    def __init__(self):
+        self.nome = None
+        self.cidade = None
+        self.especialidade = None
+        self.convenio = None
+    
+    def post(self):
+        req_data = request.get_json() 
+        self.nome = req_data['nome']
+        self.cidade = req_data['cidade']
+        self.especialidade = req_data['especialidade']
+        self.convenio = req_data['convenio']
         
+        filtros = ['nome','cidade','especialidade','convenio']
+        filtrosRecebidos = [self.nome, self.cidade, self.especialidade,self.convenio]
+
+        indices = [i for i, x in enumerate(filtrosRecebidos) if x == ""]
+        for index in reversed(indices):
+            filtros.pop(index)
+            filtrosRecebidos.pop(index)
+
+        if len(filtros) == 0:
+            sWhere = ''
+        elif len(filtrosRecebidos) == 1:
+            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+        else:
+            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+            for i in range(1, len(b)):
+                sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
+        query = "SELECT MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Especialidade, CONVENIOS.Convenio FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+        
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            cur.execute(query)
+            query = cur.fetchall()
+            conn.close()
+            return query
+            
+        except Exception as e:
+            print('FALHA AO REALIZAR BUSCA')
+            print (str(e))
+            return {'insertion error': str(e)}
+        
+
 api.add_resource(Cadastrar, *routes_cadastrar)
 api.add_resource(Cadastrar_Medico, *routes_cadastrar_medico)
 api.add_resource(Efetuar_Login, *routes_efetuar_login)
 api.add_resource(GetEspecialidades, *routes_getespecialidades)
 api.add_resource(GetCidades, *routes_getcidades)
+api.add_resource(GetConvenios, *routes_getconvenios)
+api.add_resource(RealizarBusca, *routes_realizarbusca)
 
 
 @app.route('/', methods=['GET', 'POST'])
