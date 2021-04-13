@@ -123,12 +123,21 @@ function agendarConsulta(){
 
 }
 
+$(document).on('click','#clear-filter', function(){
+  console.log('Função Clear Filter')
+  $("#nome").val("");
+  //TODO - RESETAR OS COMBO BOXES PARA A PRIMEIRA OPÇÃO
+  //$("#drop_list_cidades").val("");
+  //$("#drop_list_especialidade").val("");
+  //$("#drop_list_convenios").val("")
+})
+
 function retornaBusca(){
   filter_data = {
     "nome": $("#nome").val(),
     "cidade": $("#drop_list_cidades").val(),
     "especialidade": $("#drop_list_especialidade").val(),
-    "convenio": ""
+    "convenio": $("#drop_list_convenios").val()
   };
 
   console.log(filter_data)
@@ -181,6 +190,21 @@ function preencheFiltros(){
             console.log(JSON.stringify(e));
         }
     });
+
+    $.ajax({
+      url: 'http://localhost:5000/getconvenios',
+      type: 'get',
+      success: function(data) {
+        console.log(data);
+        for(i = 0; i < data.length; i++){
+          $('#drop_list_convenios').append('<option value="'+data[i][0]+'">'+data[i][0]+'</option>');
+        }
+        $('#drop_list_convenios').formSelect();
+       },
+      error: function (e){
+          console.log(JSON.stringify(e));
+      }
+  });
 }
 
 $('#logout').click(function(event) {
