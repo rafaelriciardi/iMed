@@ -11,13 +11,7 @@ bcrypt = Bcrypt(app)
 api = Api(app)
 cors = CORS(app)
 
-conn = psycopg2.connect(
-    host="ec2-34-225-167-77.compute-1.amazonaws.com",
-    database="d76l1rkkcfbufc",
-    user="imwtjcynbamcnr",
-    password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
-)
-
+### Definição das rotas para o backend ###
 routes_efetuar_login = [
     '/efetuar_login'
 ]
@@ -59,7 +53,16 @@ routes_agendarconsulta = {
 #conn.commit()
 #conn.close()
 
+
+### Cria as tabelas caso ainda não existam ###
+
 try:
+    conn = psycopg2.connect(
+        host="ec2-34-225-167-77.compute-1.amazonaws.com",
+        database="d76l1rkkcfbufc",
+        user="imwtjcynbamcnr",
+        password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+    )
     cur = conn.cursor()
     #cur.execute("TRUNCATE TABLE PACIENTES")
     #cur.execute("TRUNCATE TABLE MEDICOS")
@@ -81,7 +84,7 @@ except Exception as e:
         print({'Exception First:': str(e)})
 
 class Cadastrar(Resource):
-    """docstring for Insert"""
+    """Metodo responsavel por fazer o cadastro dos pacientes"""
 
     def __init__(self):
         self.nome = None
@@ -120,6 +123,7 @@ class Cadastrar(Resource):
             return {'insertion error': str(e)}
 
 class Cadastrar_Medico(Resource):
+    """Metodo responsavel por fazer o cadastro dos medicos"""
 
     def __init__(self):
         self.address = None
@@ -174,6 +178,8 @@ class Cadastrar_Medico(Resource):
             return {'insertion error': str(e)}
 
 class Efetuar_Login(Resource):
+    """Metodo que valida usuario e senha para fazer o login"""
+
     def __init__(self):
         self.username = None
         self.password = None
@@ -217,6 +223,7 @@ class Efetuar_Login(Resource):
                 return {"login": "bad password"}
 
 class GetEspecialidades(Resource):
+    """Metodo que lista as especialidades cadastradas no banco para preenchimento dos elementos do front"""
 
     def get(self):
         try:
@@ -236,7 +243,7 @@ class GetEspecialidades(Resource):
             return {'selection error': str(e)}
         
 class GetCidades(Resource):
-
+    """Metodo que lista as cidades cadastradas no banco para preenchimento dos elementos do front"""
     def get(self):
         try:
             conn = psycopg2.connect(
@@ -255,7 +262,7 @@ class GetCidades(Resource):
             return {'selection error': str(e)}
 
 class GetConvenios(Resource):
-
+    """Metodo que lista os convenios cadastrados no banco para preenchimento dos elementos do front"""
     def get(self):
         try:
             conn = psycopg2.connect(
@@ -274,6 +281,8 @@ class GetConvenios(Resource):
             return {'selection error': str(e)}
 
 class GetHorarios(Resource):
+    """Metodo que lista os horarios ocupados para medico e dia """
+
     def __init__(self):
         self.data = None
         self.crm = None
@@ -300,6 +309,7 @@ class GetHorarios(Resource):
             return {'selection error': str(e)}
 
 class AgendarConsulta(Resource):
+    """Metodo que faz o agendamento da consulta de um paciente com um medico em um dia e horario"""
     def __init__(self):
         self.data = None
         self.horario = None
@@ -331,6 +341,7 @@ class AgendarConsulta(Resource):
             return {'insertion error': str(e)}
 
 class RealizarBusca(Resource):
+    """Busca os medicos cadastrados no banco com base nos filtros passados pelo front"""
     def __init__(self):
         self.nome = None
         self.cidade = None
@@ -389,6 +400,7 @@ class RealizarBusca(Resource):
             return {'insertion error': str(e)}
         
 
+### Associa as rotas com os métodos criados ###
 api.add_resource(Cadastrar, *routes_cadastrar)
 api.add_resource(Cadastrar_Medico, *routes_cadastrar_medico)
 api.add_resource(Efetuar_Login, *routes_efetuar_login)
@@ -400,6 +412,7 @@ api.add_resource(RealizarBusca, *routes_realizarbusca)
 api.add_resource(AgendarConsulta, *routes_agendarconsulta)
 
 
+### Define as rotas e carregamento das páginas de front-end ###
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/cadastro', methods=['GET', 'POST'])
 def index():
@@ -417,6 +430,6 @@ def login():
 def busca():
     return render_template('busca.html')
 
-
+#Inicia o aplicativo
 if __name__ == '__main__':
     app.run()
