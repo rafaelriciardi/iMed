@@ -61,6 +61,15 @@ routes_agendarconsulta = {
 
 try:
     cur = conn.cursor()
+    #cur.execute("TRUNCATE TABLE PACIENTES")
+    #cur.execute("TRUNCATE TABLE MEDICOS")
+    #cur.execute("TRUNCATE TABLE MEDICOS_CONVENIOS")
+    #cur.execute("TRUNCATE TABLE CONVENIOS")
+    #cur.execute("TRUNCATE TABLE CONSULTAS")
+    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (1, 'BRADESCO')")
+    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (2, 'PORTO SEGURO')")
+    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (3, 'UNIMED')")
+    
     cur.execute("""CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); 
                    CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);
                    CREATE TABLE IF NOT EXISTS MEDICOS_CONVENIOS (IDRelacao SERIAL PRIMARY KEY, Crm VARCHAR(255), IDConvenio INT NOT NULL);
@@ -139,7 +148,6 @@ class Cadastrar_Medico(Resource):
         self.password = bcrypt.generate_password_hash(req_data['password']).decode('utf-8')
         self.phone =  req_data['phone']
         self.convenios_atendidos =  req_data['convenios_atendidos']
-        
         
 
         try:
@@ -339,7 +347,6 @@ class RealizarBusca(Resource):
         filtros = ['nome','cidade','especialidade','convenio']
         filtrosRecebidos = [self.nome, self.cidade, self.especialidade,self.convenio]
         
-        
         try:
             conv = lambda i : i or ''
             filtrosRecebidos = [conv(i) for i in filtrosRecebidos]
@@ -351,14 +358,16 @@ class RealizarBusca(Resource):
             if len(filtros) == 0:
                 sWhere = ''
             elif len(filtrosRecebidos) == 1:
-                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+                sWhere = "WHERE UPPER(MEDICOS."+filtros[0]+") LIKE UPPER('%"+filtrosRecebidos[0]+"%')" 
             else:
                 sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
                 for i in range(1, len(filtrosRecebidos)):
-                    sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
-            #query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, CONVENIOS.Convenio, MEDICOS.Address FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+                    sWhere += " AND UPPER(MEDICOS."+filtros[i]+") LIKE UPPER('"+filtrosRecebidos[i]+"%')" 
+            
+            sWhere = sWhere.replace("UPPER(MEDICOS.convenio)","CONVENIOS.Convenio")
+            
             query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address, STRING_AGG(Convenio, ' - ') Convenio_list FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" GROUP BY MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address ORDER BY Especialidade, Cidade, Nome"
-
+            #print(query)
             conn = psycopg2.connect(
                 host="ec2-34-225-167-77.compute-1.amazonaws.com",
                 database="d76l1rkkcfbufc",
@@ -369,7 +378,11 @@ class RealizarBusca(Resource):
             cur.execute(query)
             query = cur.fetchall()
             conn.close()
-            return query
+            if query == []:
+                return([('-1', 'Não foi possível encontrar um médico ou clínica.', '', '', '', '', 'Por gentileza, revise os filtros utilizados.')])
+            else:
+                print(query)
+                return query
             
         except Exception as e:
             print (str(e))
