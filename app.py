@@ -210,6 +210,10 @@ def cadastro_medico():
 def login():
     return render_template('login.html')
 
+@app.route('/busca', methods=['GET', 'POST'])
+def busca():
+    return render_template('busca.html')
+
 
 if __name__ == '__main__':
     app.run()
