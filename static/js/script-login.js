@@ -31,7 +31,24 @@ $(document).on('click', '#login', function() {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (response){
+          
           console.log(JSON.stringify(response))
+          if (response['login'] == 'ok'){
+              name = response['nome']
+              id = response['id']
+
+              console.log(response)
+              document.cookie = `name=${name}`;
+              document.cookie = `id=${id}`;
+              document.cookie = `type=${login_type}`;
+              window.location.href = "/busca";
+          }
+          else if(response['login'] == 'bad password'){
+            alert("Usuario e senha não coincidem");
+          }
+          else{
+            alert(response);
+          }
         },
         error: function (response){
           alert(JSON.stringify(response));

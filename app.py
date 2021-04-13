@@ -30,20 +30,16 @@ routes_cadastrar_medico = [
     '/cadastrar_medico'
 ]
 
-routes_select_all = [
-    '/select_all'
-]
-
-routes_delete = [
-    '/delete'
-]
-
 routes_getespecialidades = [
     '/getespecialidades'
 ]
 
 routes_getcidades = [
     '/getcidades'
+]
+
+routes_gethorarios = [
+    '/gethorarios'
 ]
 
 routes_getconvenios = [
@@ -54,9 +50,22 @@ routes_realizarbusca = [
     '/realizarbusca'
 ]
 
+routes_agendarconsulta = {
+    '/agendarconsulta'
+}
+
+#cur = conn.cursor()
+#cur.execute("DROP TABLE consultas")
+#conn.commit()
+#conn.close()
+
 try:
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);CREATE TABLE IF NOT EXISTS MEDICOS_CONVENIOS (IDRelacao SERIAL PRIMARY KEY, Crm VARCHAR(255), IDConvenio INT NOT NULL);CREATE TABLE IF NOT EXISTS CONVENIOS (IDConvenio INT NOT NULL PRIMARY KEY, Convenio VARCHAR(255))")
+    cur.execute("""CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); 
+                   CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);
+                   CREATE TABLE IF NOT EXISTS MEDICOS_CONVENIOS (IDRelacao SERIAL PRIMARY KEY, Crm VARCHAR(255), IDConvenio INT NOT NULL);
+                   CREATE TABLE IF NOT EXISTS CONVENIOS (IDConvenio INT NOT NULL PRIMARY KEY, Convenio VARCHAR(255));
+                   CREATE TABLE IF NOT EXISTS CONSULTAS (IDConsulta SERIAL NOT NULL PRIMARY KEY, Data VARCHAR(50), Horario VARCHAR (50), Cpf VARCHAR(255), Crm VARCHAR(255))""")
     conn.commit()
     conn.close()
 except Exception as e:
@@ -98,7 +107,6 @@ class Cadastrar(Resource):
             conn.close()
             return {'insertion': 'ok'}
         except Exception as e:
-            print('FALHA NO CADASTRO')
             print (str(e))
             return {'insertion error': str(e)}
 
@@ -148,14 +156,12 @@ class Cadastrar_Medico(Resource):
                                             (self.address, self.birthday, self.cidade, self.crm, self.email, self.especialidade, self.estado, self.nome, self.password, self.phone))
             
             for convenio in self.convenios_atendidos:
-                print(int(convenio))
                 cur.execute("INSERT INTO MEDICOS_CONVENIOS (Crm, IDConvenio) VALUES(%s,%s)",(self.crm, int(convenio)))
             
             conn.commit()
             conn.close()
             return {'insertion': 'ok'}
         except Exception as e:
-            print('FALHA NO CADASTRO MÉDICO')
             print (str(e))
             return {'insertion error': str(e)}
 
@@ -169,7 +175,6 @@ class Efetuar_Login(Resource):
         self.user = req_data['user']
         self.password = req_data['password']#.encode('utf-8')
         self.tipo_usuario = req_data['tipo_usuario']
-        print('logando ' + self.user)
         
         try:
             return self.checkUser()
@@ -186,13 +191,11 @@ class Efetuar_Login(Resource):
                 password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
             )
         cur = conn.cursor()
-        
-        print(self.tipo_usuario)
 
         if self.tipo_usuario == "paciente":
-            df_password =  pd.read_sql_query("SELECT password FROM PACIENTES WHERE Cpf = '"+self.user+"'", conn)
+            df_password =  pd.read_sql_query("SELECT password, nome, cpf as id FROM PACIENTES WHERE Cpf = '"+self.user+"'", conn)
         elif self.tipo_usuario == "medico":
-            df_password =  pd.read_sql_query("SELECT password FROM MEDICOS WHERE Crm = '"+self.user+"'", conn)
+            df_password =  pd.read_sql_query("SELECT password, nome, crm as id FROM MEDICOS WHERE Crm = '"+self.user+"'", conn)
         
         conn.close()
 
@@ -201,11 +204,9 @@ class Efetuar_Login(Resource):
         else:
             bd_password = df_password.to_dict()["password"][0]
             if(bcrypt.check_password_hash(bd_password, self.password)):
-                print('entrou')
-                return "success"
+                return {"login": "ok", "nome": df_password.to_dict()["nome"][0], "id": df_password.to_dict()["id"][0]}
             else:
-                print('falha')
-                return "Usuário e senha não coincidem"
+                return {"login": "bad password"}
 
 class GetEspecialidades(Resource):
 
@@ -264,6 +265,63 @@ class GetConvenios(Resource):
             print(e)
             return {'selection error': str(e)}
 
+class GetHorarios(Resource):
+    def __init__(self):
+        self.data = None
+        self.crm = None
+
+    def post(self):
+        req_data = request.get_json() 
+        self.data = req_data['data']
+        self.crm = req_data['crm']
+
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            query = cur.execute("SELECT Horario FROM CONSULTAS WHERE Data = '"+self.data+"' AND Crm = '"+self.crm+"' ORDER BY Horario")
+            query = cur.fetchall()
+            conn.close()
+            return query
+        except Exception as e:
+            print(e)
+            return {'selection error': str(e)}
+
+class AgendarConsulta(Resource):
+    def __init__(self):
+        self.data = None
+        self.horario = None
+        self.cpf = None
+        self.crm = None
+
+    def post(self):
+        req_data = request.get_json()
+        self.data = req_data['data']
+        self.horario = req_data['horario']
+        self.cpf = req_data['cpf']
+        self.crm = req_data['crm']
+
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            cur.execute("INSERT INTO CONSULTAS (data, horario, cpf, crm) VALUES (%s,%s,%s,%s)",
+                                            (self.data, self.horario, self.cpf, self.crm))
+            conn.commit()
+            conn.close()
+            return {'insertion': 'ok'}
+        except Exception as e:
+            print (str(e))
+            return {'insertion error': str(e)}
+
 class RealizarBusca(Resource):
     def __init__(self):
         self.nome = None
@@ -277,26 +335,30 @@ class RealizarBusca(Resource):
         self.cidade = req_data['cidade']
         self.especialidade = req_data['especialidade']
         self.convenio = req_data['convenio']
-        
+
         filtros = ['nome','cidade','especialidade','convenio']
         filtrosRecebidos = [self.nome, self.cidade, self.especialidade,self.convenio]
-
-        indices = [i for i, x in enumerate(filtrosRecebidos) if x == ""]
-        for index in reversed(indices):
-            filtros.pop(index)
-            filtrosRecebidos.pop(index)
-
-        if len(filtros) == 0:
-            sWhere = ''
-        elif len(filtrosRecebidos) == 1:
-            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
-        else:
-            sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
-            for i in range(1, len(b)):
-                sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
-        query = "SELECT MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Especialidade, CONVENIOS.Convenio FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+        
         
         try:
+            conv = lambda i : i or ''
+            filtrosRecebidos = [conv(i) for i in filtrosRecebidos]
+            indices = [i for i, x in enumerate(filtrosRecebidos) if x == ""]
+            for index in reversed(indices):
+                filtros.pop(index)
+                filtrosRecebidos.pop(index)
+
+            if len(filtros) == 0:
+                sWhere = ''
+            elif len(filtrosRecebidos) == 1:
+                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+            else:
+                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+                for i in range(1, len(filtrosRecebidos)):
+                    sWhere += " AND MEDICOS."+filtros[i]+" LIKE '"+filtrosRecebidos[i]+"%'" 
+            #query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, CONVENIOS.Convenio, MEDICOS.Address FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" ORDER BY Especialidade, CONVENIOS.Convenio, Cidade, Nome"
+            query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address, STRING_AGG(Convenio, ' - ') Convenio_list FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" GROUP BY MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address ORDER BY Especialidade, Cidade, Nome"
+
             conn = psycopg2.connect(
                 host="ec2-34-225-167-77.compute-1.amazonaws.com",
                 database="d76l1rkkcfbufc",
@@ -310,7 +372,6 @@ class RealizarBusca(Resource):
             return query
             
         except Exception as e:
-            print('FALHA AO REALIZAR BUSCA')
             print (str(e))
             return {'insertion error': str(e)}
         
@@ -321,7 +382,9 @@ api.add_resource(Efetuar_Login, *routes_efetuar_login)
 api.add_resource(GetEspecialidades, *routes_getespecialidades)
 api.add_resource(GetCidades, *routes_getcidades)
 api.add_resource(GetConvenios, *routes_getconvenios)
+api.add_resource(GetHorarios, *routes_gethorarios)
 api.add_resource(RealizarBusca, *routes_realizarbusca)
+api.add_resource(AgendarConsulta, *routes_agendarconsulta)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -336,6 +399,10 @@ def cadastro_medico():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     return render_template('login.html')
+
+@app.route('/busca', methods=['GET', 'POST'])
+def busca():
+    return render_template('busca.html')
 
 
 if __name__ == '__main__':
