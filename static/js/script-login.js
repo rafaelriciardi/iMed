@@ -1,5 +1,17 @@
 $(document).ready(function(){
     login_type = 'paciente';
+
+    if(getCookie('type') == 'paciente'){
+    $("#page1").attr("href", "/busca")
+    $("#page1").html("Buscar médicos")
+  }
+  else if(getCookie('type') == 'medico'){
+    $("#page1").attr("href", "/agenda")
+    $("#page1").html("Consultar agenda")
+  }
+  else{
+    $("#page1").hide()
+  }
   });
 
 $('input[type=radio][name=user-type]').change(function() {
@@ -41,7 +53,13 @@ $(document).on('click', '#login', function() {
               document.cookie = `name=${name}`;
               document.cookie = `id=${id}`;
               document.cookie = `type=${login_type}`;
-              window.location.href = "/busca";
+              if(login_type == "medico"){
+                window.location.href = "/agenda";
+              }
+              else{
+                window.location.href = "/busca";
+              }
+              
           }
           else if(response['login'] == 'bad password'){
             alert("Usuario e senha não coincidem");

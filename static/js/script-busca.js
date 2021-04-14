@@ -1,9 +1,21 @@
 $( document ).ready(function(){
 	$('select').formSelect();
-  $('.datepicker').datepicker({ format: 'dd-mm-yyyy' });
+  $('.datepicker').datepicker({ format: 'dd/mm/yyyy' });
 	checkUser();
   retornaBusca();
   preencheFiltros();
+
+  if(getCookie('type') == 'paciente'){
+    $("#page1").attr("href", "/busca")
+    $("#page1").html("Buscar médicos")
+  }
+  else if(getCookie('type') == 'medico'){
+    $("#page1").attr("href", "/agenda")
+    $("#page1").html("Consultar agenda")
+  }
+  else{
+    $("#page1").hide()
+  }
 });
 
 $(document).on('click','#filter', function(){
@@ -26,6 +38,7 @@ $(document).on('click','.close-btn', function(){
 
 $(document).on('click','#agendar-consulta', function(){
   if ($('.datepicker').val() != "" && $('select').val() != ""){
+    
     agendarConsulta();
   }
   else{
@@ -126,10 +139,13 @@ function agendarConsulta(){
 $(document).on('click','#clear-filter', function(){
   console.log('Função Clear Filter')
   $("#nome").val("");
-  //TODO - RESETAR OS COMBO BOXES PARA A PRIMEIRA OPÇÃO
-  //$("#drop_list_cidades").val("");
-  //$("#drop_list_especialidade").val("");
-  //$("#drop_list_convenios").val("")
+
+  $('#drop_list_cidades').prop('selectedIndex',0);
+  $('#drop_list_cidades').formSelect();
+  $('#drop_list_especialidade').prop('selectedIndex',0);
+  $('#drop_list_especialidade').formSelect();
+  $('#drop_list_convenios').prop('selectedIndex',0);
+  $('#drop_list_convenios').formSelect();
 })
 
 function retornaBusca(){
@@ -150,9 +166,15 @@ function retornaBusca(){
         data: JSON.stringify(filter_data), 
         success: function(data) {
           console.log(data);
-          for(i = 0; i < data.length; i++){
-            $('.doctor-table').append('<tr value='+data[i][0]+'><td><a class="nome-medico military-font">'+data[i][1]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i][2]+'</span> - <span class="estado">'+data[i][3]+'</span></p><p class="endereco-medico">'+data[i][5]+'</p><p class="site-medico">'+data[i][4]+'</p><div class="convenio-medico">'+data[i][6]+'</div></td></tr>');
+          if(data[0][0] != "-1"){
+            for(i = 0; i < data.length; i++){
+              $('.doctor-table').append('<tr value='+data[i][0]+'><td><a class="nome-medico military-font">'+data[i][1]+'</a><p class="localizacao-medico"><span class="cidade">'+data[i][2]+'</span> - <span class="estado">'+data[i][3]+'</span></p><p class="endereco-medico">'+data[i][5]+'</p><p class="site-medico">'+data[i][4]+'</p><div class="convenio-medico">'+data[i][6]+'</div></td></tr>');
+            }
           }
+          else{
+            alert("Não foi possível encontrar um médico ou clinica com o filtro utilizado.")
+          }
+          
          },
         error: function (e){
             console.log(JSON.stringify(e));

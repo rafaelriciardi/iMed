@@ -1,5 +1,17 @@
 $(document).ready(function(){
     $('select').formSelect();
+
+    if(getCookie('type') == 'paciente'){
+    $("#page1").attr("href", "/busca")
+    $("#page1").html("Buscar médicos")
+  }
+  else if(getCookie('type') == 'medico'){
+    $("#page1").attr("href", "/agenda")
+    $("#page1").html("Consultar agenda")
+  }
+  else{
+    $("#page1").hide()
+  }
   });
 
 $('#clear').click(function() {
