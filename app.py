@@ -363,14 +363,14 @@ class RealizarBusca(Resource):
             elif len(filtrosRecebidos) == 1:
                 sWhere = "WHERE UPPER(MEDICOS."+filtros[0]+") LIKE UPPER('%"+filtrosRecebidos[0]+"%')" 
             else:
-                sWhere = "WHERE MEDICOS."+filtros[0]+" LIKE '"+filtrosRecebidos[0]+"%'" 
+                sWhere = "WHERE UPPER(MEDICOS."+filtros[0]+") LIKE UPPER('%"+filtrosRecebidos[0]+"%')" 
                 for i in range(1, len(filtrosRecebidos)):
-                    sWhere += " AND UPPER(MEDICOS."+filtros[i]+") LIKE UPPER('"+filtrosRecebidos[i]+"%')" 
+                    sWhere += " AND UPPER(MEDICOS."+filtros[i]+") LIKE UPPER('%"+filtrosRecebidos[i]+"%')" 
             
             sWhere = sWhere.replace("UPPER(MEDICOS.convenio)","CONVENIOS.Convenio")
             
             query = "SELECT MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address, STRING_AGG(Convenio, ' - ') Convenio_list FROM ((MEDICOS INNER JOIN MEDICOS_CONVENIOS ON MEDICOS.Crm = MEDICOS_CONVENIOS.Crm) INNER JOIN CONVENIOS ON MEDICOS_CONVENIOS.IDConvenio = CONVENIOS.IDConvenio) "+sWhere+" GROUP BY MEDICOS.Crm, MEDICOS.Nome, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Especialidade, MEDICOS.Address ORDER BY Especialidade, Cidade, Nome"
-            #print(query)
+            print(query)
             conn = psycopg2.connect(
                 host="ec2-34-225-167-77.compute-1.amazonaws.com",
                 database="d76l1rkkcfbufc",
