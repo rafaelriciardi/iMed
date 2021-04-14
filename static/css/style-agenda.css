@@ -34,7 +34,7 @@ h1, h2, h3, h4, h5, h6 {
 .signin-box{
 	margin: 30px auto;
 	width: 60%;
-	min-height: 700px;
+	min-height: 600px;
 	height: max-content;
 	background-color: #fff;
 	border-radius: 18px;
@@ -211,10 +211,6 @@ span > label{
     margin-right: auto;
 }
 
-.doctor-table tr:hover{
-	cursor: pointer;
-	-webkit-transform: scale(1.05);	
-}
 
 .datepicker{
 	width: 160px !important;

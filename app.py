@@ -48,10 +48,9 @@ routes_agendarconsulta = {
     '/agendarconsulta'
 }
 
-#cur = conn.cursor()
-#cur.execute("DROP TABLE consultas")
-#conn.commit()
-#conn.close()
+routes_getconsultas_medico = {
+    '/getconsultas_medico'
+}
 
 
 ### Cria as tabelas caso ainda não existam ###
@@ -63,16 +62,7 @@ try:
         user="imwtjcynbamcnr",
         password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
     )
-    cur = conn.cursor()
-    #cur.execute("TRUNCATE TABLE PACIENTES")
-    #cur.execute("TRUNCATE TABLE MEDICOS")
-    #cur.execute("TRUNCATE TABLE MEDICOS_CONVENIOS")
-    #cur.execute("TRUNCATE TABLE CONVENIOS")
-    #cur.execute("TRUNCATE TABLE CONSULTAS")
-    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (1, 'BRADESCO')")
-    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (2, 'PORTO SEGURO')")
-    #cur.execute("INSERT INTO CONVENIOS (IDConvenio, Convenio) VALUES (3, 'UNIMED')")
-    
+    cur = conn.cursor()    
     cur.execute("""CREATE TABLE IF NOT EXISTS PACIENTES (Cpf VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Genre VARCHAR(50) NOT NULL, Email VARCHAR(255) NOT NULL, Convenio VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL); 
                    CREATE TABLE IF NOT EXISTS MEDICOS (Crm VARCHAR(255) PRIMARY KEY, Nome VARCHAR(255), Birthday VARCHAR(50), Address VARCHAR(50) NOT NULL, Cidade VARCHAR(255) NOT NULL, Estado VARCHAR(255) NOT NULL, Phone VARCHAR(255) NOT NULL, Email VARCHAR(255) NOT NULL, Especialidade VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL);
                    CREATE TABLE IF NOT EXISTS MEDICOS_CONVENIOS (IDRelacao SERIAL PRIMARY KEY, Crm VARCHAR(255), IDConvenio INT NOT NULL);
@@ -94,6 +84,7 @@ class Cadastrar(Resource):
         self.phone = None
         self.email = None
         self.convenio = None
+        self.phone = None
 
     def post(self):
         req_data = request.get_json()  # obtendo os dados do model
@@ -104,6 +95,7 @@ class Cadastrar(Resource):
         self.email = req_data['email']
         self.convenio = req_data['convenio']
         self.password = bcrypt.generate_password_hash(req_data['password']).decode('utf-8')
+        self.phone = req_data['phone']
         
         try:
             conn = psycopg2.connect(
@@ -113,8 +105,8 @@ class Cadastrar(Resource):
                 password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
             )
             cur = conn.cursor()
-            cur.execute("INSERT INTO PACIENTES (Nome, Cpf, Birthday, Genre, Email, Convenio, Password) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                                            (self.nome, self.cpf, self.birthday, self.genre, self.email, self.convenio, self.password))
+            cur.execute("INSERT INTO PACIENTES (Nome, Cpf, Birthday, Genre, Email, Convenio, Password, Phone) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                                            (self.nome, self.cpf, self.birthday, self.genre, self.email, self.convenio, self.password, self.phone))
             conn.commit()
             conn.close()
             return {'insertion': 'ok'}
@@ -392,12 +384,63 @@ class RealizarBusca(Resource):
             if query == []:
                 return([('-1', 'Não foi possível encontrar um médico ou clínica.', '', '', '', '', 'Por gentileza, revise os filtros utilizados.')])
             else:
-                print(query)
                 return query
             
         except Exception as e:
             print (str(e))
             return {'insertion error': str(e)}
+
+class GetConsultas_Medico(Resource):
+    def __init__(self):
+        self.data = None
+        self.crm = None
+
+    def post(self):
+        req_data = request.get_json() 
+        self.data = req_data['data']
+        self.crm = req_data['crm']
+
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            query = cur.execute("SELECT PACIENTES.Nome, PACIENTES.Cpf, PACIENTES.Birthday, CONSULTAS.Horario, PACIENTES.Convenio, PACIENTES.Phone FROM CONSULTAS INNER JOIN PACIENTES ON CONSULTAS.Cpf = PACIENTES.Cpf WHERE Data = '"+self.data+"' AND Crm = '"+self.crm+"' ORDER BY Horario")
+            query = cur.fetchall()
+            conn.close()
+            return query
+        except Exception as e:
+            print(e)
+            return {'selection error': str(e)}
+
+class GetConsultas_Paciente(Resource):
+    def __init__(self):
+        self.data = None
+        self.Cpf = None
+
+    def post(self):
+        req_data = request.get_json() 
+        self.data = req_data['data']
+        self.cpf = req_data['cpf']
+
+        try:
+            conn = psycopg2.connect(
+                host="ec2-34-225-167-77.compute-1.amazonaws.com",
+                database="d76l1rkkcfbufc",
+                user="imwtjcynbamcnr",
+                password="56f0769106cdcc30822e56e90d56828ccc1bc032f513e37698eede66a48cf1b9",
+            )
+            cur = conn.cursor()
+            query = cur.execute("SELECT PACIENTES.Convenio, CONSULTAS.Horario, MEDICOS.Address AS Endereco, MEDICOS.Cidade, MEDICOS.Estado, MEDICOS.Phone AS Telefone, MEDICOS.Especialidade FROM ((CONSULTAS INNER JOIN PACIENTES ON CONSULTAS.Cpf = PACIENTES.Cpf) INNER JOIN MEDICOS ON CONSULTAS.Crm = MEDICOS.Crm WHERE Data = '"+self.data+"' AND Cpf = '"+self.cpf+"' ORDER BY Horario)")
+            query = cur.fetchall()
+            conn.close()
+            return query
+        except Exception as e:
+            print(e)
+            return {'selection error': str(e)}
         
 
 ### Associa as rotas com os métodos criados ###
@@ -410,6 +453,7 @@ api.add_resource(GetConvenios, *routes_getconvenios)
 api.add_resource(GetHorarios, *routes_gethorarios)
 api.add_resource(RealizarBusca, *routes_realizarbusca)
 api.add_resource(AgendarConsulta, *routes_agendarconsulta)
+api.add_resource(GetConsultas_Medico, *routes_getconsultas_medico)
 
 
 ### Define as rotas e carregamento das páginas de front-end ###
@@ -429,6 +473,10 @@ def login():
 @app.route('/busca', methods=['GET', 'POST'])
 def busca():
     return render_template('busca.html')
+
+@app.route('/agenda', methods=['GET', 'POST'])
+def agenda():
+    return render_template('agenda.html')
 
 #Inicia o aplicativo
 if __name__ == '__main__':
